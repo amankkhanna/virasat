@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -59,189 +60,240 @@ const ParallaxArtistSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const artistRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [showAllArtists, setShowAllArtists] = useState(false);
+  const [currentArtistIndex, setCurrentArtistIndex] = useState(0);
+
+  // Show only first 3 artists initially
+  const visibleArtists = showAllArtists ? artists : artists.slice(0, 3);
+  const hasMoreArtists = artists.length > 3;
 
   useEffect(() => {
     const container = containerRef.current;
     const scrollContainer = scrollContainerRef.current;
-    const artistElements = artistRefs.current.filter(
+    const artistElements = artistRefs.current.slice(0, visibleArtists.length).filter(
       Boolean
     ) as HTMLDivElement[];
 
     if (!container || !scrollContainer || artistElements.length === 0) return;
 
-    // Set up the horizontal scroll
-    const totalWidth = artistElements.length * window.innerWidth;
+    // Set up the horizontal scroll only if showing all artists
+    if (showAllArtists) {
+      const totalWidth = artistElements.length * window.innerWidth;
 
-    // Set the width of the scroll container
-    gsap.set(scrollContainer, { width: totalWidth });
+      // Set the width of the scroll container
+      gsap.set(scrollContainer, { width: totalWidth });
 
-    // Create the main scroll trigger for pinning and horizontal scroll
-    const horizontalTween = gsap.to(scrollContainer, {
-      x: () => -(totalWidth - window.innerWidth),
-      ease: "none",
-    });
+      // Create the main scroll trigger for pinning and horizontal scroll
+      const horizontalTween = gsap.to(scrollContainer, {
+        x: () => -(totalWidth - window.innerWidth),
+        ease: "none",
+      });
 
-    const scrollTrigger = ScrollTrigger.create({
-      trigger: container,
-      start: "top top",
-      end: () => `+=${totalWidth}`,
-      pin: true,
-      scrub: 1,
-      animation: horizontalTween,
-      invalidateOnRefresh: true,
-      anticipatePin: 1,
-      onEnter: () => {
-        // Hide header when entering artist section
-        window.dispatchEvent(new CustomEvent("hideHeader"));
-      },
-      onLeave: () => {
-        // Show header when leaving artist section
-        window.dispatchEvent(new CustomEvent("showHeader"));
-      },
-      onEnterBack: () => {
-        // Hide header when scrolling back into artist section
-        window.dispatchEvent(new CustomEvent("hideHeader"));
-      },
-      onLeaveBack: () => {
-        // Show header when scrolling back out of artist section
-        window.dispatchEvent(new CustomEvent("showHeader"));
-      },
-    });
+      const scrollTrigger = ScrollTrigger.create({
+        trigger: container,
+        start: "top top",
+        end: () => `+=${totalWidth}`,
+        pin: true,
+        scrub: 1,
+        animation: horizontalTween,
+        invalidateOnRefresh: true,
+        anticipatePin: 1,
+        onEnter: () => {
+          window.dispatchEvent(new CustomEvent("hideHeader"));
+        },
+        onLeave: () => {
+          window.dispatchEvent(new CustomEvent("showHeader"));
+        },
+        onEnterBack: () => {
+          window.dispatchEvent(new CustomEvent("hideHeader"));
+        },
+        onLeaveBack: () => {
+          window.dispatchEvent(new CustomEvent("showHeader"));
+        },
+      });
 
-    // Create parallax effects for each artist
-    artistElements.forEach((artist, index) => {
-      const image = artist.querySelector(".artist-image");
-      const content = artist.querySelector(".artist-content");
-      const title = artist.querySelector(".artist-title");
-      const subtitle = artist.querySelector(".artist-subtitle");
-      const description = artist.querySelector(".artist-description");
-      const specialty = artist.querySelector(".artist-specialty");
+      // Create parallax effects for each artist
+      artistElements.forEach((artist, index) => {
+        const image = artist.querySelector(".artist-image");
+        const content = artist.querySelector(".artist-content");
+        const title = artist.querySelector(".artist-title");
+        const subtitle = artist.querySelector(".artist-subtitle");
+        const description = artist.querySelector(".artist-description");
+        const specialty = artist.querySelector(".artist-specialty");
 
-      if (!image || !content) return;
+        if (!image || !content) return;
 
-      // Set initial states - make first artist visible immediately
-      if (index === 0) {
-        // Don't apply any GSAP animations to the first artist - keep it simple
+        // Set initial states - make first artist visible immediately
+        if (index === 0) {
+          gsap.set([title, subtitle, description, specialty], {
+            y: 0,
+            opacity: 1,
+          });
+          if (image instanceof HTMLElement) {
+            image.style.opacity = "1";
+            image.style.visibility = "visible";
+            image.style.transform = "scale(1)";
+          }
+        } else {
+          gsap.set([title, subtitle, description, specialty], {
+            y: 100,
+            opacity: 0,
+          });
+          gsap.set(image, {
+            scale: 1.2,
+            opacity: 0,
+          });
+        }
+
+        // Create reveal animation for each artist (skip first one)
+        if (index > 0) {
+          const revealTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: artist,
+              start: "left 80%",
+              end: "left 20%",
+              horizontal: true,
+              containerAnimation: horizontalTween,
+              scrub: 1,
+              toggleActions: "play none none reverse",
+            },
+          });
+
+          revealTl
+            .to(image, {
+              scale: 1,
+              opacity: 1,
+              duration: 1,
+              ease: "power2.out",
+            })
+            .to(
+              title,
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                ease: "power2.out",
+              },
+              "-=0.6"
+            )
+            .to(
+              subtitle,
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                ease: "power2.out",
+              },
+              "-=0.6"
+            )
+            .to(
+              description,
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                ease: "power2.out",
+              },
+              "-=0.4"
+            )
+            .to(
+              specialty,
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                ease: "power2.out",
+              },
+              "-=0.6"
+            );
+        }
+
+        // Add floating animation for the image (skip for first artist to avoid conflicts)
+        if (index > 0) {
+          gsap.to(image, {
+            y: -20,
+            duration: 3,
+            ease: "power2.inOut",
+            yoyo: true,
+            repeat: -1,
+            delay: index * 0.5,
+          });
+        }
+      });
+
+      // Refresh ScrollTrigger on resize
+      const handleResize = () => {
+        ScrollTrigger.refresh();
+      };
+
+      window.addEventListener("resize", handleResize);
+
+      return () => {
+        scrollTrigger.kill();
+        ScrollTrigger.getAll().forEach((trigger) => {
+          if (trigger.trigger === container) {
+            trigger.kill();
+          }
+        });
+        window.removeEventListener("resize", handleResize);
+      };
+    } else {
+      // Static layout for first 3 artists
+      gsap.set(scrollContainer, { width: "100%" });
+      
+      // Simple fade-in animation for static artists
+      artistElements.forEach((artist, index) => {
+        const image = artist.querySelector(".artist-image");
+        const content = artist.querySelector(".artist-content");
+        const title = artist.querySelector(".artist-title");
+        const subtitle = artist.querySelector(".artist-subtitle");
+        const description = artist.querySelector(".artist-description");
+        const specialty = artist.querySelector(".artist-specialty");
+
+        if (!image || !content) return;
+
         gsap.set([title, subtitle, description, specialty], {
           y: 0,
           opacity: 1,
         });
-        // Don't animate the first image at all
         if (image instanceof HTMLElement) {
           image.style.opacity = "1";
           image.style.visibility = "visible";
           image.style.transform = "scale(1)";
         }
-      } else {
-        gsap.set([title, subtitle, description, specialty], {
-          y: 100,
-          opacity: 0,
-        });
-        gsap.set(image, {
-          scale: 1.2,
-          opacity: 0,
-        });
-      }
-
-      // Create reveal animation for each artist (skip first one)
-      if (index > 0) {
-        const revealTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: artist,
-            start: "left 80%",
-            end: "left 20%",
-            horizontal: true,
-            containerAnimation: horizontalTween,
-            scrub: 1,
-            toggleActions: "play none none reverse",
-          },
-        });
-
-        revealTl
-          .to(image, {
-            scale: 1,
-            opacity: 1,
-            duration: 1,
-            ease: "power2.out",
-          })
-          .to(
-            title,
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.8,
-              ease: "power2.out",
-            },
-            "-=0.6"
-          )
-          .to(
-            subtitle,
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.8,
-              ease: "power2.out",
-            },
-            "-=0.6"
-          )
-          .to(
-            description,
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.8,
-              ease: "power2.out",
-            },
-            "-=0.4"
-          )
-          .to(
-            specialty,
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.8,
-              ease: "power2.out",
-            },
-            "-=0.6"
-          );
-      }
-
-      // Add floating animation for the image (skip for first artist to avoid conflicts)
-      if (index > 0) {
-        gsap.to(image, {
-          y: -20,
-          duration: 3,
-          ease: "power2.inOut",
-          yoyo: true,
-          repeat: -1,
-          delay: index * 0.5,
-        });
-      }
-    });
-
-    // Refresh ScrollTrigger on resize
-    const handleResize = () => {
-      ScrollTrigger.refresh();
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      scrollTrigger.kill();
-      ScrollTrigger.getAll().forEach((trigger) => {
-        if (trigger.trigger === container) {
-          trigger.kill();
-        }
       });
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+    }
+  }, [showAllArtists, visibleArtists.length]);
+
+  const handleShowMore = () => {
+    setShowAllArtists(true);
+  };
+
+  const navigateToArtist = (direction: 'prev' | 'next') => {
+    if (!showAllArtists) return;
+    
+    const newIndex = direction === 'next' 
+      ? Math.min(currentArtistIndex + 1, artists.length - 1)
+      : Math.max(currentArtistIndex - 1, 0);
+    
+    setCurrentArtistIndex(newIndex);
+    
+    // Scroll to the specific artist
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      gsap.to(scrollContainer, {
+        x: -newIndex * window.innerWidth,
+        duration: 1,
+        ease: "power2.inOut"
+      });
+    }
+  };
 
   return (
     <section
       ref={containerRef}
       className="relative overflow-hidden will-change-transform"
-      style={{ height: "100vh" }}
+      style={{ height: showAllArtists ? "100vh" : "auto", minHeight: showAllArtists ? "100vh" : "80vh" }}
     >
       {/* Creative Multi-Layer Background */}
       <div className="absolute inset-0 pointer-events-none">
@@ -329,8 +381,36 @@ const ParallaxArtistSection = () => {
         </p>
       </div>
 
-      {/* Scroll Hint */}
+      {/* Navigation Controls */}
+      {showAllArtists && (
+        <div className="absolute top-1/2 left-4 right-4 flex justify-between z-20 pointer-events-none">
+          <button
+            onClick={() => navigateToArtist('prev')}
+            disabled={currentArtistIndex === 0}
+            className="pointer-events-auto bg-brand-black/80 hover:bg-brand-red text-brand-white p-3 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <button
+            onClick={() => navigateToArtist('next')}
+            disabled={currentArtistIndex === artists.length - 1}
+            className="pointer-events-auto bg-brand-black/80 hover:bg-brand-red text-brand-white p-3 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight size={24} />
+          </button>
+        </div>
+      )}
+
+      {/* Scroll Hint or Show More Button */}
       <div className="absolute bottom-4 md:bottom-8 right-4 md:right-8 z-10 text-brand-white opacity-70">
+        {!showAllArtists && hasMoreArtists ? (
+          <button
+            onClick={handleShowMore}
+            className="bg-brand-red hover:bg-brand-red-dark text-brand-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105"
+          >
+            Show More Artists ({artists.length - 3} more)
+          </button>
+        ) : showAllArtists ? (
         <div className="flex items-center space-x-2">
           <span className="text-xs md:text-sm">Scroll to explore</span>
           <div className="flex space-x-1">
@@ -345,20 +425,25 @@ const ParallaxArtistSection = () => {
             ></div>
           </div>
         </div>
+        ) : null}
       </div>
 
       {/* Horizontal Scroll Container */}
       <div
         ref={scrollContainerRef}
-        className="flex h-full will-change-transform"
+        className={`${showAllArtists ? 'flex' : 'grid grid-cols-1 md:grid-cols-3 gap-8 px-8'} h-full will-change-transform`}
         style={{ width: "fit-content" }}
       >
-        {artists.map((artist, index) => (
+        {visibleArtists.map((artist, index) => (
           <div
             key={artist.name}
             ref={(el) => (artistRefs.current[index] = el)}
-            className="flex-shrink-0 flex items-center justify-center relative will-change-transform"
-            style={{ width: "100vw", height: "100vh" }}
+            className={`${showAllArtists ? 'flex-shrink-0' : ''} flex items-center justify-center relative will-change-transform`}
+            style={{ 
+              width: showAllArtists ? "100vw" : "100%", 
+              height: showAllArtists ? "100vh" : "auto",
+              minHeight: showAllArtists ? "100vh" : "60vh"
+            }}
           >
             <div className="container mx-auto px-4 md:px-8 h-full max-w-7xl">
               <div className="flex flex-col md:flex-row items-center justify-center md:justify-between h-full">
@@ -479,13 +564,14 @@ const ParallaxArtistSection = () => {
             </div>
 
             {/* Progress Indicator */}
-            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2">
+            {showAllArtists && (
+              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2">
               <div className="flex space-x-2">
                 {artists.map((_, i) => (
                   <div
                     key={i}
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      i === index
+                      i === currentArtistIndex
                         ? "bg-brand-red scale-125"
                         : "bg-brand-earthen-light opacity-50"
                     }`}
@@ -493,6 +579,7 @@ const ParallaxArtistSection = () => {
                 ))}
               </div>
             </div>
+            )}
           </div>
         ))}
       </div>

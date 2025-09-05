@@ -8,6 +8,7 @@ import FAQSection from '@/components/FAQSection';
 import PartnersSection from '@/components/PartnersSection';
 import HighlightsSection from '@/components/HighlightsSection';
 import ParallaxArtistSection from '@/components/ParallaxArtistSection';
+import EventsSection from '@/components/EventsSection';
 
 const HomePage = () => {
   const fadeIn = {
@@ -42,6 +43,7 @@ const HomePage = () => {
 
       <PartnersSection />
       <HighlightsSection />
+      <EventsSection />
       <FAQSection />
     </div>
   );
