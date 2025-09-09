@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import HeroCarousel from "./HeroCarousel";
+import Image from "next/image";
 
 const useIsMobile = (breakpoint = 1024) => {
   const [isMobile, setIsMobile] = useState(false);
@@ -182,6 +183,8 @@ const HeroSection = () => {
                     loop
                     muted
                     playsInline
+                    preload="metadata"
+                    poster={`/images/${item.video.split("/").pop()?.replace(".mp4", ".jpg")}`}
                   >
                     <source src={item.video} type="video/mp4" />
                     Your browser does not support the video tag.
@@ -208,14 +211,22 @@ const HeroSection = () => {
                   style={{ transform: "translateX(-1.5%)" }}
                 >
                   <motion.div
-                    className="absolute inset-0 bg-[url('/images/rangoli.svg')] bg-center bg-no-repeat bg-contain"
+                    className="absolute inset-0"
                     animate={{ rotate: 360 }}
                     transition={{
                       duration: 20,
                       repeat: Infinity,
                       ease: "linear",
                     }}
-                  />
+                  >
+                    <Image
+                      src="/images/rangoli.svg"
+                      alt="Rangoli"
+                      layout="fill"
+                      objectFit="contain"
+                      priority
+                    />
+                  </motion.div>
                 </div>
 
                 {/* Shiny Virasat Text */}
