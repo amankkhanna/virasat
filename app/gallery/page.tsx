@@ -5,10 +5,15 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import Masonry from 'react-masonry-css';
-import Lightbox from 'yet-another-react-lightbox';
-import Video from "yet-another-react-lightbox/plugins/video";
+import dynamic from 'next/dynamic';
 import 'yet-another-react-lightbox/styles.css';
 import { Button } from '@/components/ui/button';
+
+import Video from "yet-another-react-lightbox/plugins/video";
+
+const Lightbox = dynamic(() => import('yet-another-react-lightbox'), {
+  loading: () => <p>Loading lightbox...</p>,
+});
 import SmallLoader from '@/components/SmallLoader';
 import { useLoading } from '@/hooks/useLoading';
 

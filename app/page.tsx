@@ -3,13 +3,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import HeroSection from '@/components/HeroSection';
-import FAQSection from '@/components/FAQSection';
-import PartnersSection from '@/components/PartnersSection';
-import HighlightsSection from '@/components/HighlightsSection';
-import ParallaxArtistSection from '@/components/ParallaxArtistSection';
-import EventsSection from '@/components/EventsSection';
-import GalleryPreview from '@/components/GalleryPreview';
+
+const FAQSection = dynamic(() => import('@/components/FAQSection'), { loading: () => <p>Loading...</p> });
+const PartnersSection = dynamic(() => import('@/components/PartnersSection'), { loading: () => <p>Loading...</p> });
+const HighlightsSection = dynamic(() => import('@/components/HighlightsSection'), { loading: () => <p>Loading...</p> });
+const ParallaxArtistSection = dynamic(() => import('@/components/ParallaxArtistSection'), { loading: () => <p>Loading...</p> });
+const EventsSection = dynamic(() => import('@/components/EventsSection'), { loading: () => <p>Loading...</p> });
+const GalleryPreview = dynamic(() => import('@/components/GalleryPreview'), { loading: () => <p>Loading...</p> });
 
 const HomePage = () => {
   const fadeIn = {
@@ -54,16 +57,13 @@ const HomePage = () => {
             transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
             className="absolute top-0 left-0 w-32 h-32 md:w-48 md:h-48 lg:w-56 lg:h-56"
           >
-            <img 
-              src="/images/rangoli-about.png" 
-              alt="Decorative Rangoli" 
+            <Image
+              src="/images/rangoli-about.png"
+              alt="Decorative Rangoli"
+              width={224}
+              height={224}
               className="w-full h-full object-contain filter drop-shadow-lg"
               style={{ opacity: 0.8 }}
-              onError={(e) => {
-                console.log('Rangoli image failed to load:', e);
-                e.currentTarget.style.display = 'none';
-              }}
-              onLoad={() => console.log('Rangoli image loaded successfully')}
             />
           </motion.div>
           
@@ -75,16 +75,13 @@ const HomePage = () => {
             transition={{ duration: 1.2, delay: 0.5, ease: "easeOut" }}
             className="absolute top-0 right-0 w-32 h-32 md:w-48 md:h-48 lg:w-56 lg:h-56"
           >
-            <img 
-              src="/images/rangoli-about2.png" 
-              alt="Decorative Rangoli" 
+            <Image
+              src="/images/rangoli-about2.png"
+              alt="Decorative Rangoli"
+              width={224}
+              height={224}
               className="w-full h-full object-contain filter drop-shadow-lg scale-x-[-1]"
               style={{ opacity: 0.4 }}
-              onError={(e) => {
-                console.log('Rangoli image failed to load:', e);
-                e.currentTarget.style.display = 'none';
-              }}
-              onLoad={() => console.log('Rangoli image loaded successfully')}
             />
           </motion.div>
           
@@ -96,16 +93,13 @@ const HomePage = () => {
             transition={{ duration: 1.4, delay: 0.7, ease: "easeOut" }}
             className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-40 md:w-56 md:h-56 lg:w-64 lg:h-64"
           >
-            <img 
-              src="/images/rangoli-about.png" 
-              alt="Decorative Rangoli" 
+            <Image
+              src="/images/rangoli-about.png"
+              alt="Decorative Rangoli"
+              width={256}
+              height={256}
               className="w-full h-full object-contain filter drop-shadow-lg"
               style={{ opacity: 0.95 }}
-              onError={(e) => {
-                console.log('Rangoli image failed to load:', e);
-                e.currentTarget.style.display = 'none';
-              }}
-              onLoad={() => console.log('Rangoli image loaded successfully')}
             />
           </motion.div>
           
@@ -123,9 +117,11 @@ const HomePage = () => {
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             >
-              <img 
-                src="/images/rangoli-about3.png" 
-                alt="Decorative Rangoli" 
+              <Image
+                src="/images/rangoli-about3.png"
+                alt="Decorative Rangoli"
+                width={80}
+                height={80}
                 className="w-full h-full object-contain"
                 style={{ opacity: 0.2 }}
               />
@@ -137,9 +133,11 @@ const HomePage = () => {
               animate={{ rotate: -360 }}
               transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
             >
-              <img 
-                src="/images/rangoli.svg" 
-                alt="Decorative Rangoli" 
+              <Image
+                src="/images/rangoli.svg"
+                alt="Decorative Rangoli"
+                width={80}
+                height={80}
                 className="w-full h-full object-contain"
                 style={{ opacity: 0.2 }}
               />

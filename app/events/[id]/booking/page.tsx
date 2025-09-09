@@ -17,16 +17,6 @@ interface PageProps {
   }
 }
 
-// Generate static props for better performance
-export async function generateStaticProps() {
-  return {
-    props: {
-      events: allEvents
-    },
-    revalidate: 3600 // Revalidate every hour
-  }
-}
-
 export default function EventBookingPage({ params }: PageProps) {
   const eventId = parseInt(params.id)
   

@@ -2,8 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import HeroCarousel from "./HeroCarousel";
+import dynamic from "next/dynamic";
 import Image from "next/image";
+
+const HeroCarousel = dynamic(() => import("./HeroCarousel"), {
+  loading: () => <div className="w-full h-full bg-black/20 backdrop-blur-sm flex items-center justify-center"><p>Loading...</p></div>,
+  ssr: false,
+});
 
 const useIsMobile = (breakpoint = 1024) => {
   const [isMobile, setIsMobile] = useState(false);

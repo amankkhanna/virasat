@@ -2,11 +2,13 @@
 
 import './globals.css';
 import { Playfair_Display, Lato, Cormorant_Garamond, Cinzel } from 'next/font/google';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import LoadingScreen from '@/components/LoadingScreen';
+import dynamic from 'next/dynamic';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+
+const LoadingScreen = dynamic(() => import('@/components/LoadingScreen'), { ssr: false });
 
 const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
@@ -40,12 +42,27 @@ export default function RootLayout({
   // It will persist as `false` across client-side navigations.
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(registration => {
+          console.log('SW registered: ', registration);
+        }).catch(registrationError => {
+          console.log('SW registration failed: ', registrationError);
+        });
+      });
+    }
+  }, []);
+
   const handleLoadingComplete = () => {
     setLoading(false);
   };
 
   return (
     <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className={`${playfairDisplay.variable} ${lato.variable} ${cormorantGaramond.variable} ${cinzel.variable} font-sans bg-brand-white`}>
         {loading ? (
           <LoadingScreen onLoadingComplete={handleLoadingComplete} />

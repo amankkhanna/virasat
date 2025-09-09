@@ -56,25 +56,12 @@ interface EventBookingClientProps {
 }
 
 export default function EventBookingClient({ eventData }: EventBookingClientProps) {
-  const { isLoading, withLoading } = useLoading(true)
+  const { isLoading, withLoading } = useLoading(false)
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedSeating, setSelectedSeating] = useState<string | null>(null)
   const [selectedQuantity, setSelectedQuantity] = useState(1)
   const [showInstructions, setShowInstructions] = useState(false)
-
-  // Load booking data with optimized loading
-  useEffect(() => {
-    const loadBookingData = async () => {
-      await withLoading(async () => {
-        // Reduced loading time for better UX
-        // In production, this would be a real API call
-        await new Promise(resolve => setTimeout(resolve, 600))
-      })
-    }
-    
-    loadBookingData()
-  }, [withLoading])
 
   const handleSeatingSelect = (seatingId: string) => {
     setSelectedSeating(seatingId)
