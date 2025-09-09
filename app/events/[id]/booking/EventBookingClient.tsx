@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   ArrowLeft, 
@@ -26,6 +26,7 @@ import Image from "next/image"
 import SmallLoader from '@/components/SmallLoader'
 import { useLoading } from '@/hooks/useLoading'
 import { seatingAreas } from './eventData'
+import { preloadEventData } from '@/lib/event-preloader'
 
 const bookingSteps = [
   { id: 1, title: "Select Seating", description: "Choose your preferred seating area" },
@@ -62,6 +63,23 @@ export default function EventBookingClient({ eventData }: EventBookingClientProp
   const [selectedSeating, setSelectedSeating] = useState<string | null>(null)
   const [selectedQuantity, setSelectedQuantity] = useState(1)
   const [showInstructions, setShowInstructions] = useState(false)
+  const [bookingInProgress, setBookingInProgress] = useState(false)
+
+  // Preload related events for better navigation performance
+  useEffect(() => {
+    const preloadRelatedEvents = async () => {
+      // Preload next and previous events
+      const currentId = eventData.id
+      const relatedIds = [currentId - 1, currentId + 1].filter(id => id > 0 && id <= 56)
+      
+      // Preload in background without blocking UI
+      setTimeout(() => {
+        relatedIds.forEach(id => preloadEventData(id))
+      }, 100)
+    }
+    
+    preloadRelatedEvents()
+  }, [eventData.id])
 
   const handleSeatingSelect = (seatingId: string) => {
     setSelectedSeating(seatingId)
@@ -83,10 +101,67 @@ export default function EventBookingClient({ eventData }: EventBookingClientProp
     return seating ? seating.price * selectedQuantity : 0
   }
 
-  const handleBookNow = () => {
-    // In real app, this would process the booking
-    setCurrentStep(3)
-    setTimeout(() => setCurrentStep(4), 2000)
+  const handleBookNow = useCallback(async () => {
+    setBookingInProgress(true)
+    
+    try {
+      // Simulate booking process with progress updates
+      setCurrentStep(3)
+      
+      // Simulate payment processing (reduced from 2000ms to 600ms)
+      await new Promise(resolve => setTimeout(resolve, 600))
+      
+      setCurrentStep(4)
+    } catch (error) {
+      console.error('Booking failed:', error)
+      // Handle error state
+    } finally {
+      setBookingInProgress(false)
+    }
+  }, [])
+
+  // Enhanced loading state management
+  useEffect(() => {
+    if (bookingInProgress) {
+      // Prevent navigation during booking
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+      
+      window.addEventListener('beforeunload', handleBeforeUnload)
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [bookingInProgress])
+
+  // Optimized icon component getter with memoization
+  const getIconComponent = useCallback((iconName: string) => {
+    switch (iconName) {
+      case 'Crown': return Crown
+      case 'Star': return Star
+      case 'Users': return Users
+      case 'Sofa': return Sofa
+      default: return Users
+    }
+  }, [])
+
+  // Memoized seating data getter
+  const getSelectedSeatingData = useCallback(() => {
+    return seatingAreas.find(area => area.id === selectedSeating)
+  }, [selectedSeating])
+
+  // Optimized quantity change handler
+  const handleQuantityChange = useCallback((quantity: number) => {
+    if (quantity >= 1 && quantity <= 10) {
+      setSelectedQuantity(quantity)
+    }
+  }, [])
+
+  // Optimized total calculation
+  const calculateTotal = useCallback(() => {
+    const seating = getSelectedSeatingData()
+    return seating ? seating.price * selectedQuantity : 0
+  }, [getSelectedSeatingData, selectedQuantity])
   }
 
   const getIconComponent = (iconName: string) => {

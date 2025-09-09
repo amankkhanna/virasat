@@ -192,14 +192,17 @@ export default function EventsList({ initialEventsByDay, initialTotalPages, init
 
       if (distance > 0) {
         setTimeLeft({
+    const tracker = trackBookingClick(eventId, 'events-page')
+    
           days: Math.floor(distance / (1000 * 60 * 60 * 24)),
           hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
           minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
           seconds: Math.floor((distance % (1000 * 60)) / 1000)
         })
-      }
+    // Brief loading state for better UX
     }, 1000)
 
+      tracker.complete(true) // Mark as cache hit since we preloaded
     return () => clearInterval(timer)
   }, [])
 

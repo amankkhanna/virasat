@@ -3,13 +3,17 @@ import EventBookingClient from './EventBookingClient'
 import { allEvents } from '@/lib/events'
 import { getCachedEvent, preloadEventData } from '@/lib/event-preloader'
 
-// Generate static params for all event IDs using actual events data
+// Generate static params for all event IDs - FIXED to use actual events data
 export async function generateStaticParams() {
-  // Use the centralized events data to ensure all events are pre-generated
+  console.log('Generating static params for', allEvents.length, 'events')
   return allEvents.map(event => ({
     id: event.id.toString(),
   }))
 }
+
+// Enable static generation for better performance
+export const dynamic = 'force-static'
+export const revalidate = 3600 // Revalidate every hour
 
 interface PageProps {
   params: {
@@ -20,22 +24,27 @@ interface PageProps {
 export default function EventBookingPage({ params }: PageProps) {
   const eventId = parseInt(params.id)
   
-  // Try to get cached event data first for better performance
+  console.log('Loading booking page for event ID:', eventId)
+  
+  // Try cached data first for instant loading
   let eventData = getCachedEvent(eventId)
   
-  // If not cached, find in events array and cache it
+  // Fallback to events array if not cached
   if (!eventData) {
+    console.log('Event not in cache, loading from events array')
     eventData = allEvents.find(event => event.id === eventId)
     if (eventData) {
-      preloadEventData(eventId) // Cache for future use
+      // Cache immediately for future use
+      preloadEventData(eventId)
     }
   }
   
-  // Fallback to first event if not found (shouldn't happen with proper static generation)
+  // Fallback to first event if not found
   if (!eventData) {
     console.warn(`Event with ID ${eventId} not found, using fallback`)
     return <EventBookingClient eventData={allEvents[0]} />
   }
 
+  console.log('Successfully loaded event:', eventData.title)
   return <EventBookingClient eventData={eventData} />
 }

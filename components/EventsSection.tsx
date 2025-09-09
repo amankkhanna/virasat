@@ -843,6 +843,8 @@ export const EventsSection = () => {
 
   // Handle scroll position for mobile
   const handleScroll = () => {
+    const tracker = trackBookingClick(eventId, 'homepage')
+    
     if (!isMobile || !scrollContainerRef) return
     
     const scrollLeft = scrollContainerRef.scrollLeft
@@ -866,9 +868,10 @@ export const EventsSection = () => {
           minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
           seconds: Math.floor((distance % (1000 * 60)) / 1000)
         })
-      }
+    // Brief loading state for better UX
     }, 1000)
 
+      tracker.complete(true) // Mark as cache hit since we preloaded
     return () => clearInterval(timer)
   }, [])
 

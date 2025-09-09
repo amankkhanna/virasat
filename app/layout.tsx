@@ -43,6 +43,13 @@ export default function RootLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Preload all events for better performance
+    preloadAllEvents().then(() => {
+      console.log('All events preloaded successfully')
+    }).catch(error => {
+      console.error('Failed to preload events:', error)
+    })
+    
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').then(registration => {
